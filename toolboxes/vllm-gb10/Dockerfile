@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         htop \
         nvtop \
         python3 \
+        python3-dev \
+        python3.12-dev \
         python3-pip \
         python3-venv \
         build-essential \
@@ -41,8 +43,10 @@ ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
 
 # GB10 is ARM64 — this build takes considerably longer than an x86_64 build.
 # Expect 45-90+ minutes depending on host. See docs/building.md for details.
-RUN pip install --no-cache-dir --break-system-packages -r requirements/build.txt || true
-RUN pip install --no-cache-dir --break-system-packages -e . || true
+# No separate build-requirements install needed: pip install -e . resolves
+# the build-time deps declared in pyproject.toml's [build-system] itself via
+# PEP 517 build isolation.
+RUN pip install --no-cache-dir --break-system-packages -e .
 
 # FLASH_ATTN is the recommended/stable backend on GB10 as of this writing.
 # FLASHINFER has a known warmup bug in community builds — see docs/vllm-notes.md.

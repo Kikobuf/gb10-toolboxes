@@ -31,6 +31,12 @@ WORKDIR /opt/llama.cpp
 RUN git clone --depth 1 --branch ${LLAMA_CPP_REF} https://github.com/ggml-org/llama.cpp.git . \
     || (git clone --depth 1 https://github.com/ggml-org/llama.cpp.git . && git checkout ${LLAMA_CPP_REF})
 
+# The build container has the CUDA toolkit but no physical GPU/driver, so the
+# real libcuda.so isn't present. Link against the CUDA driver stub instead;
+# the NVIDIA Container Toolkit / host driver provides the real libcuda.so.1
+# at runtime.
+ENV LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}"
+
 # Build with CUDA support, explicitly targeting the GB10's compute capability.
 # Do NOT rely on "auto" arch detection here — sm_121a is new enough that older
 # CMake/CUDA toolkit combinations may not auto-detect it correctly.

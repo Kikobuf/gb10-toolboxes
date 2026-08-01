@@ -21,6 +21,10 @@ on:
       - "toolboxes/**"
       - ".github/workflows/build.yml"
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   REGISTRY: ghcr.io
   IMAGE_BASE: ghcr.io/kikobuf/gb10-toolboxes
