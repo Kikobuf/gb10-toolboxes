@@ -40,11 +40,22 @@ ENV LIBRARY_PATH="/usr/local/cuda/lib64/stubs:${LIBRARY_PATH}"
 # Build with CUDA support, explicitly targeting the GB10's compute capability.
 # Do NOT rely on "auto" arch detection here — sm_121a is new enough that older
 # CMake/CUDA toolkit combinations may not auto-detect it correctly.
+#
+# The LIBRARY_PATH stub above is enough for ggml-cuda's own .so to link (a
+# shared object is allowed unresolved symbols by default). But the test/CLI
+# executables link against that .so by full path rather than "-lcuda", so ld
+# tries to resolve its transitive NEEDED entry (libcuda.so.1) by exact
+# filename — and the stub dir only ships an unversioned "libcuda.so", so that
+# lookup fails and every driver-API symbol comes back as an undefined
+# reference for the executable link. -Wl,--allow-shlib-undefined tells ld to
+# trust that libcuda.so.1 (provided at runtime by the NVIDIA Container
+# Toolkit) will satisfy those symbols instead of requiring proof now.
 RUN mkdir -p build && cd build && \
     cmake .. -G Ninja \
         -DGGML_CUDA=ON \
         -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCH} \
-        -DCMAKE_BUILD_TYPE=Release && \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_EXE_LINKER_FLAGS="-Wl,--allow-shlib-undefined" && \
     ninja
 
 ENV PATH="/opt/llama.cpp/build/bin:${PATH}"
