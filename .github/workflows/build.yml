@@ -1,0 +1,81 @@
+name: Build and publish gb10 toolboxes
+
+on:
+  schedule:
+    # Weekly check — llama.cpp moves fast but pinning to `master` weekly is
+    # reasonable; vLLM is manual-dispatch only given long ARM64 build times.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      llama_cpp_ref:
+        description: "llama.cpp git ref to build (default: master)"
+        required: false
+        default: "master"
+      vllm_ref:
+        description: "vLLM git ref to build (e.g. v0.20.1)"
+        required: false
+        default: "v0.20.1"
+  push:
+    branches: [main]
+    paths:
+      - "toolboxes/**"
+      - ".github/workflows/build.yml"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/gb10-toolboxes
+
+jobs:
+  build-llama-cpp-cuda:
+    # ARM64 native build — requires an arm64 runner (or self-hosted GB10 runner
+    # for a truly native, non-emulated build; see docs/building.md).
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push llama-cpp-cuda
+        uses: docker/build-push-action@v6
+        with:
+          context: toolboxes/llama-cpp-cuda
+          platforms: linux/arm64
+          push: true
+          build-args: |
+            LLAMA_CPP_REF=${{ github.event.inputs.llama_cpp_ref || 'master' }}
+            CUDA_ARCH=121
+          tags: |
+            ${{ env.IMAGE_BASE }}:llama-cpp-cuda
+
+  build-vllm-gb10:
+    # Long build (45-90+ min on ARM64) — manual dispatch or explicit push only,
+    # not the weekly schedule, to avoid burning CI time on every cron tick.
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push vllm-gb10
+        uses: docker/build-push-action@v6
+        with:
+          context: toolboxes/vllm-gb10
+          platforms: linux/arm64
+          push: true
+          build-args: |
+            VLLM_REF=${{ github.event.inputs.vllm_ref || 'v0.20.1' }}
+            TORCH_CUDA_ARCH_LIST=12.1a
+          tags: |
+            ${{ env.IMAGE_BASE }}:vllm-gb10
+            ${{ env.IMAGE_BASE }}:vllm-gb10-${{ github.event.inputs.vllm_ref || 'v0.20.1' }}
