@@ -61,6 +61,7 @@ jobs:
     # not the weekly schedule, to avoid burning CI time on every cron tick.
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
 

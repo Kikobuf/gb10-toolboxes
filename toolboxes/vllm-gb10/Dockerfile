@@ -41,6 +41,13 @@ RUN git clone --depth 1 --branch ${VLLM_REF} https://github.com/vllm-project/vll
 
 ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
 
+# Cap parallel compile jobs (vLLM's setup.py reads MAX_JOBS). Left at its
+# default, ninja spawns one compile job per core, and each CUDA/CUTLASS
+# kernel translation unit here is large enough that 4 concurrent jobs can
+# exceed a 16GB-RAM build host, silently OOM-killing the build with no
+# error in the log. Trades build time for peak memory.
+ENV MAX_JOBS=2
+
 # GB10 is ARM64 — this build takes considerably longer than an x86_64 build.
 # Expect 45-90+ minutes depending on host. See docs/building.md for details.
 # No separate build-requirements install needed: pip install -e . resolves
