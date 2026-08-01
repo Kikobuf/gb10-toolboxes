@@ -23,7 +23,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_BASE: ghcr.io/${{ github.repository_owner }}/gb10-toolboxes
+  IMAGE_BASE: ghcr.io/kikobuf/gb10-toolboxes
 
 jobs:
   build-llama-cpp-cuda:
