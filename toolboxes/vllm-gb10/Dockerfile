@@ -16,6 +16,9 @@ ARG VLLM_REF=v0.16.0
 ARG TORCH_CUDA_ARCH_LIST="12.1a"
 ENV DEBIAN_FRONTEND=noninteractive
 
+# libnuma-dev: vLLM's CPU backend (csrc/cpu/utils.cpp) includes numa.h
+# directly; without the header the build fails with "fatal error: numa.h:
+# No such file or directory" regardless of CUDA architecture.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         sudo \
         curl \
@@ -32,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         cmake \
         ninja-build \
         ca-certificates \
+        libnuma-dev \
         && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /opt/vllm
