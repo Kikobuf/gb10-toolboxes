@@ -60,19 +60,17 @@ jobs:
     # Manual dispatch or explicit push only, not the weekly schedule, to avoid
     # burning build time on this runner on every cron tick.
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-    # GitHub's hosted ubuntu-24.04-arm runner (4 vCPU/16GB) isn't enough for
-    # this build: at default parallelism it got silently OOM-killed, and
-    # capped to MAX_JOBS=2 it ran cleanly but needed 4+ hours. Runs on a
-    # self-hosted ARM64 box instead — see docs/self-hosted-runner.md for
-    # setup. Doesn't need to be GB10 hardware; the build only ever links
-    # against the CUDA driver stub, never touches a real GPU.
-    runs-on: [self-hosted, vllm-builder]
+    # GitHub's hosted ubuntu-24.04-arm runner (4 vCPU/16GB): at default
+    # parallelism this build got silently OOM-killed; MAX_JOBS=2 (below)
+    # avoids that but needed 4+ hours against VLLM_REF=v0.20.1. No
+    # self-hosted runner available (no spare hardware), so still targeting
+    # the hosted runner — testing VLLM_REF=v0.16.0 next, since GB10
+    # community builds report that ref building in 20-80min elsewhere.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
 
-      # Long-lived self-hosted box (unlike ephemeral hosted runners), so
-      # reclaim space from previous builds before starting a new one.
       - name: Free up disk space
         run: docker system prune -af
 
