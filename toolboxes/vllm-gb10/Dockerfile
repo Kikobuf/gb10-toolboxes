@@ -53,7 +53,11 @@ ENV MAX_JOBS=2
 # No separate build-requirements install needed: pip install -e . resolves
 # the build-time deps declared in pyproject.toml's [build-system] itself via
 # PEP 517 build isolation.
-RUN pip install --no-cache-dir --break-system-packages -e .
+# -v: without it, pip captures the build backend's cmake/ninja output and
+# only shows it on failure, so a long build just prints an opaque "still
+# running..." heartbeat with no way to tell real progress from a hang.
+# -v streams that output live so we can see actual compile progress.
+RUN pip install --no-cache-dir --break-system-packages -v -e .
 
 # FLASH_ATTN is the recommended/stable backend on GB10 as of this writing.
 # FLASHINFER has a known warmup bug in community builds — see docs/vllm-notes.md.
