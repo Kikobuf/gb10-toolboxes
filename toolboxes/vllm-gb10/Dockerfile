@@ -12,7 +12,7 @@ FROM nvcr.io/nvidia/cuda:13.0.0-devel-ubuntu24.04
 LABEL org.opencontainers.image.source="https://github.com/Kikobuf/gb10-toolboxes"
 LABEL org.opencontainers.image.description="vLLM built for GB10 (sm_121a), packaged for toolbox/distrobox"
 
-ARG VLLM_REF=v0.20.1
+ARG VLLM_REF=v0.16.0
 ARG TORCH_CUDA_ARCH_LIST="12.1a"
 ENV DEBIAN_FRONTEND=noninteractive
 

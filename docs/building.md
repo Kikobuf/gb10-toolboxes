@@ -21,7 +21,7 @@ always tracking `master`. Build time: roughly 10-20 minutes on GB10 hardware its
 
 ```bash
 docker build \
-  --build-arg VLLM_REF=v0.20.1 \
+  --build-arg VLLM_REF=v0.16.0 \
   --build-arg TORCH_CUDA_ARCH_LIST="12.1a" \
   -t gb10-toolboxes:vllm-gb10 \
   toolboxes/vllm-gb10

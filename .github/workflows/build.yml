@@ -12,9 +12,9 @@ on:
         required: false
         default: "master"
       vllm_ref:
-        description: "vLLM git ref to build (e.g. v0.20.1)"
+        description: "vLLM git ref to build (e.g. v0.16.0)"
         required: false
-        default: "v0.20.1"
+        default: "v0.16.0"
   push:
     branches: [main]
     paths:
@@ -90,8 +90,8 @@ jobs:
           platforms: linux/arm64
           push: true
           build-args: |
-            VLLM_REF=${{ github.event.inputs.vllm_ref || 'v0.20.1' }}
+            VLLM_REF=${{ github.event.inputs.vllm_ref || 'v0.16.0' }}
             TORCH_CUDA_ARCH_LIST=12.1a
           tags: |
             ${{ env.IMAGE_BASE }}:vllm-gb10
-            ${{ env.IMAGE_BASE }}:vllm-gb10-${{ github.event.inputs.vllm_ref || 'v0.20.1' }}
+            ${{ env.IMAGE_BASE }}:vllm-gb10-${{ github.event.inputs.vllm_ref || 'v0.16.0' }}

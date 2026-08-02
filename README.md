@@ -190,7 +190,7 @@ docker build \
 
 # vLLM
 docker build \
-  --build-arg VLLM_REF=v0.20.1 \
+  --build-arg VLLM_REF=v0.16.0 \
   -t gb10-toolboxes:vllm-gb10 \
   toolboxes/vllm-gb10
 ```
