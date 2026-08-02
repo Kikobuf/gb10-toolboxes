@@ -61,7 +61,11 @@ jobs:
     # not the weekly schedule, to avoid burning CI time on every cron tick.
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 120
+    # 120min wasn't enough: with MAX_JOBS=2 the build no longer dies silently
+    # (ran cleanly for the full 2h with no error before being cancelled by the
+    # old timeout — a real improvement over the previous ~66-71min silent
+    # runner deaths at full parallelism), it just needs more wall-clock time.
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
