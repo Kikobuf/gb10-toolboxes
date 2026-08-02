@@ -196,7 +196,9 @@ docker build \
 ```
 
 See [`docs/building.md`](docs/building.md) for build arg details and expected build
-times (vLLM from source on ARM64 is not fast).
+times (vLLM from source on ARM64 is not fast). If you're wiring this up in CI, see
+[`docs/self-hosted-runner.md`](docs/self-hosted-runner.md) — the vLLM build outgrows
+GitHub's hosted ARM64 runners and needs a bigger self-hosted box.
 
 ## Keeping Updated
 

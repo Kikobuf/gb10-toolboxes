@@ -57,27 +57,24 @@ jobs:
             ${{ env.IMAGE_BASE }}:llama-cpp-cuda
 
   build-vllm-gb10:
-    # Long build (45-90+ min on ARM64) — manual dispatch or explicit push only,
-    # not the weekly schedule, to avoid burning CI time on every cron tick.
+    # Manual dispatch or explicit push only, not the weekly schedule, to avoid
+    # burning build time on this runner on every cron tick.
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-    runs-on: ubuntu-24.04-arm
-    # 120min wasn't enough: with MAX_JOBS=2 the build no longer dies silently
-    # (ran cleanly for the full 2h with no error before being cancelled by the
-    # old timeout — a real improvement over the previous ~66-71min silent
-    # runner deaths at full parallelism), it just needs more wall-clock time.
-    timeout-minutes: 180
+    # GitHub's hosted ubuntu-24.04-arm runner (4 vCPU/16GB) isn't enough for
+    # this build: at default parallelism it got silently OOM-killed, and
+    # capped to MAX_JOBS=2 it ran cleanly but needed 4+ hours. Runs on a
+    # self-hosted ARM64 box instead — see docs/self-hosted-runner.md for
+    # setup. Doesn't need to be GB10 hardware; the build only ever links
+    # against the CUDA driver stub, never touches a real GPU.
+    runs-on: [self-hosted, vllm-builder]
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v4
 
-      # vLLM's build (CUDA devel base image + torch + compiled extensions) is
-      # large enough to exhaust the runner's default free disk (~14GB) before
-      # the build finishes — this job was observed dying silently around the
-      # 1h mark with no build error, consistent with the runner running out
-      # of space mid-build. Clear preinstalled toolchains we don't use first.
+      # Long-lived self-hosted box (unlike ephemeral hosted runners), so
+      # reclaim space from previous builds before starting a new one.
       - name: Free up disk space
-        run: |
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
-          docker system prune -af
+        run: docker system prune -af
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
